@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>autoclip · autorización</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <h1>autoclip · autorización</h1>
+  <p id="estado" class="muted">Leyendo la respuesta…</p>
+
+  <div class="card" id="bloque" hidden>
+    <p><strong>Copiá esta URL completa</strong> y pegala en la terminal donde corriste
+       <code>python -m autoclip.auth tiktok</code>:</p>
+    <span class="url" id="url"></span>
+    <button id="copiar" type="button">Copiar URL</button>
+    <p class="muted" id="copiado" hidden>Copiada ✓</p>
+  </div>
+
+  <p class="muted">Esta página no envía ni guarda nada: solo muestra la dirección a la que te
+     redirigió TikTok para que la copies. El código vence en pocos minutos y sirve una sola vez.</p>
+  <p class="muted" lang="en">This page sends and stores nothing: it only displays the redirect URL
+     so you can paste it into the local autoclip tool.</p>
+
+  <nav><a href="./">Inicio</a><a href="terms.html">Términos</a><a href="privacy.html">Privacidad</a></nav>
+</main>
+<script>
+  // Todo ocurre en el navegador: no hay servidor ni llamadas de red.
+  const q = new URLSearchParams(location.search);
+  const estado = document.getElementById("estado");
+  if (q.get("code")) {
+    estado.textContent = "TikTok devolvió un código de autorización.";
+    estado.className = "ok";
+    document.getElementById("url").textContent = location.href;
+    document.getElementById("bloque").hidden = false;
+  } else if (q.get("error")) {
+    estado.textContent = "TikTok devolvió un error: " + q.get("error") +
+      (q.get("error_description") ? " — " + q.get("error_description") : "");
+    estado.className = "err";
+  } else {
+    estado.textContent = "No hay ningún código en esta dirección. Esta página se abre sola al autorizar autoclip en TikTok.";
+  }
+  document.getElementById("copiar").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(location.href); } catch (e) {
+      const r = document.createRange(); r.selectNode(document.getElementById("url"));
+      getSelection().removeAllRanges(); getSelection().addRange(r); document.execCommand("copy");
+    }
+    document.getElementById("copiado").hidden = false;
+  });
+</script>
+</body>
+</html>
